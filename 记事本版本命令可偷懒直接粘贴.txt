@@ -1,0 +1,1078 @@
+	1、慧源楼Eth-trunk配置：
+	LSW1:
+sys
+un in en
+sysname LSW1
+int eth-trunk 1
+mode lacp-static
+trunkport g0/0/4
+trunkport g0/0/5
+qui
+---------------------------------
+	LSW2:
+sys
+un in en
+sysname LSW2
+int eth-trunk 1
+mode lacp-static
+trunkport g0/0/4
+trunkport g0/0/5
+qui
+---------------------------------
+	2、慧源/日新楼VLAN 划分：
+	LSW1:
+vlan batch 10 11 111
+int g0/0/1
+port link-type access
+port default vlan 111
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 10 to 11
+int g0/0/3
+port link-type trunk
+port trunk allow-pass vlan 10 to 11
+qui
+int Eth-Trunk 1
+port link-type trunk
+port trunk allow-pass vlan 10 to 11
+qui
+---------------------------------
+	LSW2:
+vlan batch 10 11 122
+int g0/0/1
+port link-type access
+port default vlan 122
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 10 to 11
+int g0/0/3
+port link-type trunk
+port trunk allow-pass vlan 10 to 11
+qui
+int Eth-Trunk 1
+port link-type trunk
+port trunk allow-pass vlan 10 to 11
+qui
+---------------------------------
+	LSW3:
+sys
+un in en
+sysname LSW3
+vlan batch 12 133
+int g0/0/1
+port link-type access
+port default vlan 133
+int g0/0/2
+port link-type access
+port default vlan 12
+qui
+---------------------------------
+	SW1：
+sys
+un in en
+sysname SW1
+vlan 10
+qui
+int g0/0/1
+port link-type trunk
+port trunk allow-pass vlan 10 11
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 10 11
+int e0/0/1
+port link-type access
+port default vlan 10
+qui
+---------------------------------
+	SW2：
+sys
+un in en
+sysname SW2
+vlan 11
+qui
+int g0/0/1
+port link-type trunk
+port trunk allow-pass vlan 10 11
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 10 11
+int e0/0/1
+port link-type access
+port default vlan 11
+qui
+---------------------------------
+	3、慧源楼RSTP配置：
+	LSW1:
+stp mode rstp
+stp priority 0
+	LSW2:
+stp mode rstp
+stp priority 4096
+---------------------------------
+	4、慧源楼VRRP配置：
+	LSW1:
+int vlan 10
+ip address 172.16.10.254 24
+vrrp vrid 10 virtual-ip 172.16.10.1
+int vlan 11
+ip address 172.16.11.254 24
+vrrp vrid 11 virtual-ip 172.16.11.1
+qui
+---------------------------------
+	LSW2:
+int vlan 10
+ip address 172.16.10.253 24
+vrrp vrid 10 virtual-ip 172.16.10.1
+int vlan 11
+ip address 172.16.11.253 24
+vrrp vrid 11 virtual-ip 172.16.11.1
+qui
+---------------------------------
+	5、慧源/日新楼OSPF配置：
+	LSW1:
+int vlan 111
+ip add 192.168.111.11 24
+qui
+ospf router-id 1.1.1.11
+area 0
+network 172.16.10.0 0.0.0.255
+network 172.16.11.0 0.0.0.255
+network 192.168.111.0 0.0.0.255
+qui
+qui
+---------------------------------
+	LSW2:
+int vlan 122
+ip add 192.168.122.12 24
+qui
+ospf router-id 1.1.1.12
+area 0
+network 172.16.10.0 0.0.0.255
+network 172.16.11.0 0.0.0.255
+network 192.168.122.0 0.0.0.255
+qui
+qui
+---------------------------------
+	LSW3:
+int vlan 133
+ip add 192.168.133.13 24
+int vlan 12
+ip add 172.16.12.1 24
+qui
+ospf router-id 1.1.1.13
+area 0
+network 172.16.12.0 0.0.0.255
+network 192.168.133.0 0.0.0.255
+qui
+qui
+---------------------------------
+	AR1:
+sys
+un in en
+sysname AR1
+int g2/0/0
+ip add 192.168.111.1 24
+int g2/0/1
+ip add 192.168.122.1 24
+int g0/0/0
+ip add 192.168.14.1 24
+int g0/0/1
+ip add 192.168.15.1 24
+int loo0
+ip add 10.1.1.1 32
+qui
+ospf router-id 1.1.1.1
+area 0
+net 192.168.14.0 0.0.0.255
+net 192.168.15.0 0.0.0.255
+net 192.168.122.0 0.0.0.255
+net 192.168.111.0 0.0.0.255
+qui
+qui
+---------------------------------
+	AR2:
+sys
+un in en
+sysname AR2
+int g0/0/0
+ip add 192.168.14.2 24
+int g0/0/1
+ip add 192.168.16.2 24
+int loo0
+ip add 10.1.1.2 32
+qui
+ospf router-id 1.1.1.2
+area 0
+net 192.168.14.0 0.0.0.255
+net 192.168.16.0 0.0.0.255
+qui
+qui
+---------------------------------
+	AR3:
+sys
+un in en
+sysname AR3
+int g0/0/0
+ip add 192.168.17.3 24
+int g0/0/1
+ip add 192.168.16.3 24
+int loo0
+ip add 10.1.1.3 32
+qui
+ospf router-id 1.1.1.3
+area 0
+net 192.168.17.0 0.0.0.255
+net 192.168.16.0 0.0.0.255
+qui
+qui
+---------------------------------
+	AR4:
+sys
+un in en
+sysname AR4
+int g0/0/0
+ip add 192.168.133.4 24
+int g0/0/1
+ip add 192.168.15.4 24
+int g2/0/0
+ip add 192.168.18.4 24
+int loo0
+ip add 10.1.1.4 32
+qui
+ospf router-id 1.1.1.4
+area 0
+net 192.168.18.0 0.0.0.255
+net 192.168.15.0 0.0.0.255
+net 192.168.133.0 0.0.0.255
+qui
+qui
+---------------------------------
+	AR5:
+sys
+un in en
+sysname AR5
+int g0/0/0
+ip add 192.168.19.5 24
+int g0/0/1
+ip add 192.168.17.5 24
+int g2/0/0
+ip add 192.168.18.5 24
+int loo0
+ip add 10.1.1.5 32
+qui
+ospf router-id 1.1.1.5
+area 0
+net 192.168.19.0 0.0.0.255
+net 192.168.17.0 0.0.0.255
+net 192.168.18.0 0.0.0.255
+qui
+qui
+---------------------------------
+	6、慧源/日新楼DHCP中继：
+	LSW1:
+dhcp enable
+int vlan 10
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+int vlan 11
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+qui
+---------------------------------
+	LSW2:
+dhcp enable
+int vlan 10
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+int vlan 11
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+qui
+---------------------------------
+	LSW3:
+dhcp enable
+int vlan 12
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+---------------------------------
+	AR2:
+dhcp enable
+int g0/0/0
+dhcp select global
+int g0/0/1
+dhcp select global
+qui
+ip pool vlan10
+network 172.16.10.0 mask 24
+gateway-list 172.16.10.1
+excluded-ip-address 172.16.10.250 172.16.10.254
+dns-list 172.16.50.3 8.8.8.8 
+lease unlimited
+qui
+ip pool vlan11
+network 172.16.11.0 mask 24
+gateway-list 172.16.11.1
+excluded-ip-address 172.16.11.250 172.16.11.254
+dns-list 172.16.50.3 8.8.8.8 
+lease unlimited
+qui
+ip pool vlan12
+gateway-list 172.16.12.1 
+network 172.16.12.0 mask 255.255.255.0
+excluded-ip-address 172.16.12.250 172.16.12.254
+dns-list 172.16.50.3 8.8.8.8
+lease unlimited
+qui
+ip pool vlan13
+gateway-list 172.16.13.1 
+network 172.16.13.0 mask 255.255.255.0 
+excluded-ip-address 172.16.13.250 172.16.13.254
+dns-list 172.16.50.3 8.8.8.8
+lease unlimited
+qui
+ip pool vlan14
+gateway-list 172.16.14.1 
+network 172.16.14.0 mask 255.255.255.0
+excluded-ip-address 172.16.14.250 172.16.14.254
+dns-list 172.16.50.3 8.8.8.8
+lease unlimited
+qui
+ip pool vlan50
+gateway-list 172.16.50.1 
+network 172.16.50.0 mask 255.255.255.0
+excluded-ip-address 172.16.50.250 172.16.50.254
+dns-list 172.16.50.3 8.8.8.8
+lease unlimited
+qui
+---------------------------------
+	7、明诚楼VLAN划分：
+	LSW5-1:
+sys
+un in en
+sysname LSW5-1
+vlan batch 13 14 110
+int g0/0/1
+port link-type access
+port default vlan 110
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 13 14
+int g0/0/3
+port link-type trunk
+port trunk allow-pass vlan 13 14
+qui
+---------------------------------
+	LSW5-2:
+sys
+un in en
+sysname LSW5-2
+vlan batch 13 14 109
+int g0/0/1
+port link-type access
+port default vlan 109
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 13 14
+int g0/0/3
+port link-type trunk
+port trunk allow-pass vlan 13 14
+qui
+---------------------------------
+	LSW5:
+sys
+un in en
+sysname LSW5
+vlan batch 13 14
+int e0/0/1
+port link-type access
+port default vlan 13
+int e0/0/2
+port link-type access
+port default vlan 14
+int g0/0/1
+port link-type trunk
+port trunk allow-pass vlan 13 14
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 13 14
+qui
+---------------------------------
+	8、明诚楼MSTP配置：
+	LSW5-1:
+stp region-configuration
+region-name mstp_name
+revision-level 1
+instance 13 vlan 13
+instance 14 vlan 14
+active region-configuration
+qui
+stp instance 13 root primary
+stp instance 14 root secondary
+---------------------------------
+	LSW5-2:
+stp region-configuration
+region-name mstp_name
+revision-level 1
+instance 13 vlan 13
+instance 14 vlan 14
+active region-configuration
+qui
+stp instance 14 root  primary
+stp instance 13 root secondary
+---------------------------------
+	SW5:
+stp region-configuration
+region-name mstp_name
+revision-level 1
+instance 13 vlan 13
+instance 14 vlan 14
+active region-configuration
+qui
+---------------------------------
+	9、明诚楼VRRP配置：
+	LSW5-1:
+int vlan 13
+ip address 172.16.13.254 24
+vrrp vrid 13 virtual-ip 172.16.13.1
+vrrp vrid 13 priority 105
+int vlan 14
+ip address 172.16.14.254 24
+vrrp vrid 14 virtual-ip 172.16.14.1
+qui
+---------------------------------
+	LSW5-2:
+int vlan 13
+ip address 172.16.13.253 24
+vrrp vrid 13 virtual-ip 172.16.13.1
+int vlan 14
+ip address 172.16.14.253 24
+vrrp vrid 14 virtual-ip 172.16.14.1
+vrrp vrid 14 priority 105
+qui
+---------------------------------
+	10、明诚楼RIP配置：
+	LSW5-1:
+int vlan 110
+ip add 192.168.110.1 24
+qui
+rip 1
+version 2
+network 192.168.110.0
+network 172.16.0.0
+qui
+---------------------------------
+	LSW5-2:
+int vlan 109
+ip add 192.168.109.1 24
+qui
+rip 1
+version 2
+network 192.168.109.0
+network 172.16.0.0
+qui
+---------------------------------
+	AR6:
+sys
+un in en
+sysname AR6
+int g0/0/0
+ip add 192.168.100.6 24
+int g2/0/1
+ip add 192.168.110.6 24
+int g2/0/2
+ip add 192.168.109.6 24
+int loo0
+ip add 10.1.1.6 32
+qui
+rip
+version 2
+net 192.168.110.0
+net 192.168.109.0
+qui
+---------------------------------
+	11、OSPF&路由引入：
+	AR6:
+ospf router-id 1.1.1.6
+area 0.0.0.1 
+network 192.168.100.0 0.0.0.255
+qui
+import-route rip 1
+qui
+rip
+import-route ospf
+---------------------------------
+	LSW4:
+sys
+un in en
+sysname LSW4
+vlan batch 100 19 120
+int g0/0/1
+port link-type access
+port default vlan 120
+int g0/0/2
+port link-type access
+port default vlan 100
+int g0/0/3
+port link-type access
+port default vlan 19
+qui
+int vlan 120
+ip add 192.168.120.4 24
+int vlan 100
+ip add 192.168.100.4 24
+int vlan 19
+ip add 192.168.19.4 24
+qui
+ospf router-id 1.1.1.14
+area 0
+net 192.168.19.0 0.0.0.255
+qui
+area 1
+net 192.168.100.0 0.0.0.255
+qui
+area 2
+net 192.168.120.0 0.0.0.255
+qui
+qui
+
+---------------------------------
+	12、明诚楼DHCP中继：
+	LSW5-1:
+dhcp enable
+int vlan 13
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+int vlan 14
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+qui
+---------------------------------
+	LSW5-2:
+dhcp enable
+int vlan 13
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+int vlan 14
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+qui
+---------------------------------
+	13、服务区vlan划分：
+	SW3:
+sys
+un in en
+sysname SW3
+vlan 50
+qui
+int e0/0/1
+port link-type access
+port default vlan 50
+int e0/0/2
+port link-type access
+port default vlan 50
+int e0/0/3
+port link-type access
+port default vlan 50
+int g0/0/1
+port link-type trunk
+port trunk allow-pass vlan 50
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 50
+qui
+---------------------------------
+	LSW6-1:
+sys
+un in en
+sysname LSW6-1
+vlan batch 50 128
+int g0/0/1
+port link-type access
+port default vlan 128
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 50
+qui
+---------------------------------
+	LSW6-2:
+sys
+un in en
+sysname LSW6-2
+vlan batch 50 129
+int g0/0/1
+port link-type access
+port default vlan 129
+int g0/0/2
+port link-type trunk
+port trunk allow-pass vlan 50
+qui
+---------------------------------
+	14、服务区VRRP配置：
+	LSW6-1:
+int vlan 50
+ip add 172.16.50.254 24
+vrrp vrid 50 virtual-ip 172.16.50.1
+vrrp vrid 50 priority 105
+qui
+---------------------------------
+	LSW6-2:
+int vlan 50
+ip add 172.16.50.253 24
+vrrp vrid 50 virtual-ip 172.16.50.1
+vrrp vrid 50 priority 105
+qui
+---------------------------------
+	15、服务区OSPF配置：
+	LSW6-1:
+int vlan 128
+ip add 192.168.128.1 24
+qui
+ospf router-id 1.1.1.16
+area 3
+network 172.16.50.0 0.0.0.255
+network 192.168.128.0 0.0.0.255
+qui
+qui
+---------------------------------
+	LSW6-2:
+int vlan 129
+ip add 192.168.129.1 24
+qui
+ospf router-id 1.1.1.17
+area 3
+network 172.16.50.0 0.0.0.255
+network 192.168.129.0 0.0.0.255
+qui
+qui
+---------------------------------
+	AR9:
+sys
+un in en
+sysname AR9
+int g0/0/1
+ip add 192.168.140.9 24
+int g0/0/2
+ip add 192.168.128.9 24
+int g4/0/0
+ip add 192.168.129.9 24
+qui
+ospf router-id 1.1.1.9
+area 3
+net 192.168.128.0 0.0.0.255
+net 192.168.129.0 0.0.0.255
+net 192.168.140.0 0.0.0.255
+qui
+qui
+---------------------------------
+	16、ospf+FW1配置
+	AR7:
+sys
+un in en
+sysname AR7
+int g0/0/1
+ip add 192.168.120.7 24
+int g0/0/0
+ip add 192.168.130.7 24
+qui
+ospf router-id 1.1.1.7
+area 2
+net 192.168.120.0 0.0.0.255
+net 192.168.130.0 0.0.0.255
+qui
+qui
+---------------------------------
+	FW1:
+admin
+Admin@123
+y
+Admin@123
+admin@123
+admin@123
+
+sys
+un in en
+sysname FW1
+int g1/0/0
+ip add 192.168.130.1 24
+service-manage all permit
+int g1/0/1
+ip add 192.168.140.1 24
+service-manage all permit
+int g1/0/2
+ip add 20.1.1.1 24
+service-manage all permit
+qui
+ospf router-id 1.1.1.18
+default-route-advertise
+area 2
+net 192.168.130.0 0.0.0.255
+qui
+area 3
+net 192.168.140.0 0.0.0.255
+qui
+qui
+firewall zone trust
+add int g1/0/0
+qui
+firewall zone dmz
+add int g1/0/1
+qui
+firewall zone untrust
+add int g1/0/2
+qui
+security-policy
+rule name local_to_any
+source-zone local
+action permit
+qui
+rule name dmz_to_untrust
+source-zone dmz
+destination-zone untrust
+source-address 172.16.50.0 24
+action permit
+qui
+rule name trust_to_untrust
+source-zone trust
+destination-zone untrust
+action permit
+qui
+rule name untrust_to_dmz
+source-zone untrust
+destination-zone dmz
+destination-address 172.16.50.0 24
+service protocol tcp destination-port 20 21
+service protocol tcp destination-port 80 443
+service protocol udp destination-port 53
+action permit
+qui
+rule name trust_dmz
+source-zone dmz
+source-zone trust
+destination-zone dmz
+destination-zone trust
+action permit
+qui
+qui
+ip route-static 0.0.0.0 0 20.1.1.10
+---------------------------------
+	17、vlink配置：
+	FW1:
+ospf
+area 2
+vlink-peer 1.1.1.14
+qui
+qui
+---------------------------------
+	LSW4
+ospf
+area 2
+vlink-peer 1.1.1.18
+qui
+qui
+---------------------------------
+	18、服务区DHCP中继：
+
+	LSW6-1:
+dhcp enable
+int vlan 50
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+---------------------------------
+	LSW6-1:
+dhcp enable
+int vlan 50
+dhcp select relay
+dhcp relay server-ip 192.168.14.2
+dhcp relay server-ip 192.168.16.2
+---------------------------------
+	19、ISP区ISIS配置：
+	AR10:
+sys
+un in en
+sysname AR10
+isis
+net 49.0000.0000.0010.00
+is-level level-2
+cost-style wide
+qui
+int g0/0/1
+ip add 20.1.1.10 24
+isis enable
+int g0/0/0
+ip add 30.1.1.10 24
+isis enable
+int g0/0/2
+ip add 40.1.1.10 24
+isis enable
+qui
+---------------------------------
+	AR11:
+sys
+un in en
+sysname AR11
+isis
+net 49.0000.0000.0011.00
+is-level level-2
+cost-style wide
+qui
+int g0/0/1
+ip add 50.1.1.11 24
+isis enable
+int g0/0/0
+ip add 30.1.1.11 24
+isis enable
+qui
+---------------------------------
+	AR12:
+sys
+un in en
+sysname AR12
+isis
+net 49.0000.0000.0012.00
+is-level level-2
+cost-style wide
+qui
+int g0/0/0
+ip add 40.1.1.12 24
+isis enable
+int g0/0/1
+ip add 20.1.5.12 24
+isis enable
+int g2/0/0
+ip add 20.1.6.12 24
+isis enable
+qui
+---------------------------------
+	20、FW1中NAT配置：
+nat address-group nat_pool 0
+section 0 20.1.1.5 20.1.1.9
+qui
+nat-policy
+rule name nat_sys
+source-zone trust
+source-zone dmz
+destination-zone untrust
+action source-nat address-group nat_pool
+qui
+qui
+---------------------------------
+	21、IPsec VPN配置:
+	FW1:
+ike proposal 10
+authentication-method pre-share
+dh group2
+encryption-algorithm 3des
+authentication-algorithm sha1
+qui
+ike peer FW2
+pre-shared-key huawei
+remote-address 50.1.1.2
+ike-proposal 10
+qui
+acl 3000
+rule 5 permit ip source 172.16.0.0 0.0.255.255 destination 172.16.0.0 0.0.255.255
+qui
+ipsec proposal XNS
+encapsulation-mode tunnel
+esp encryption-algorithm 3des
+esp authentication-algorithm sha1
+qui
+ipsec policy XNS_MAP 10 isakmp
+security acl 3000
+proposal XNS
+ike-peer FW2
+qui
+int g1/0/2
+ipsec policy XNS_MAP
+qui
+security-policy 
+rule name out_to_local
+source-zone untrust
+destination-zone local
+service protocol 50
+service protocol udp destination-port 500
+action permit
+qui
+rule name out_to_in
+source-zone untrust
+destination-zone trust
+source-address 172.16.0.0 mask 255.255.0.0
+destination-address 172.16.0.0 mask 255.255.0.0
+action permit
+qui
+qui
+nat-policy
+rule name nat_pass
+source-zone trust
+destination-zone untrust
+source-address 172.16.0.0 16
+destination-address 172.16.0.0 16
+action no-nat
+qui
+rule move nat_pass up
+qui
+---------------------------------
+	FW2:
+sys
+un in en
+sysname FW2
+int g1/0/0
+ip add 50.1.1.2 24
+service-manage all permit
+int g1/0/1
+ip add 192.168.150.2 24
+service-manage all permit
+qui
+firewall zone untrust
+add int g1/0/0
+qui
+firewall zone trust
+add int g1/0/1
+qui
+ip route-static 0.0.0.0 0 50.1.1.11
+ike proposal 10
+authentication-method pre-share
+dh group2
+encryption-algorithm 3des
+authentication-algorithm sha1
+qui
+ike peer FW1
+pre-shared-key huawei
+remote-address 20.1.1.1
+ike-proposal 10
+qui
+acl 3000
+rule 5 permit ip source 172.16.0.0 0.0.255.255 destination 172.16.0.0 0.0.255.255
+qui
+ipsec proposal XNS
+encapsulation-mode tunnel
+esp encryption-algorithm 3des
+esp authentication-algorithm sha1
+qui
+ipsec policy XNS_MAP 10 isakmp
+security acl 3000
+proposal XNS
+ike-peer FW1
+qui
+int g1/0/0
+ipsec policy XNS_MAP
+qui
+security-policy 
+rule name out_to_local
+source-zone untrust
+destination-zone local
+service protocol 50
+service protocol udp destination-port 500
+action permit
+qui
+rule name out_to_in
+source-zone untrust
+destination-zone trust
+source-address 172.16.0.0 16
+destination-address 172.16.0.0 16
+action permit
+qui
+rule name in_to_out
+source-zone trust
+destination-zone untrust
+action permit
+qui
+rule name local_to_any
+source-zone local
+action permit
+qui
+qui
+nat-policy
+rule name nat_pass
+source-zone trust
+destination-zone untrust
+source-address 172.16.16.0 16
+destination-address 172.16.0.0 16
+action no-nat
+qui
+rule name easyip
+source-zone trust
+destination-zone untrust
+source-address 172.16.0.0 16
+action source-nat easy-ip
+qui
+qui
+
+---------------------------------
+	22、分校区单臂路由&DHCP：
+	LSW7:
+sys
+un in en
+sysname LSW7
+vlan batch 16 17
+int g0/0/1
+port link-type access
+port default vlan 16
+int g0/0/2
+port link-type access
+port default vlan 17
+int g0/0/3
+port link-type trunk
+port trunk allow-pass vlan 16 17
+qui
+---------------------------------
+	AR13:
+sys
+un in en
+sysname AR13
+int g0/0/1
+ip add 192.168.150.13 24
+int g0/0/0.16
+dot1q termination vid 16
+ip add 172.16.16.1 24
+arp broadcast en
+int g0/0/0.17
+dot1q termination vid 17
+ip add 172.16.17.1 24
+arp broadcast en
+qui
+dhcp enable
+ip pool sys_vlan16
+network 172.16.16.0 mask 24
+gateway-list 172.16.16.1
+dns-list 20.1.6.2 8.8.8.8
+qui
+ip pool sys_vlan17
+network 172.16.17.0 mask 24
+gateway-list 172.16.17.1
+dns-list 8.8.8.8 114.114.114.114
+qui
+int g0/0/0.16
+dhcp select global
+qui
+int g0/0/0.17
+dhcp select global
+qui
+---------------------------------
+	23、RIP&路由引入
+	AR13:
+rip 1
+version 2
+network 192.168.150.0
+import-route direct
+qui
+
+	FW2:
+rip 1
+default-route originate
+version 2
+network 192.168.150.0
+qui
+
+---------------------------------
+
